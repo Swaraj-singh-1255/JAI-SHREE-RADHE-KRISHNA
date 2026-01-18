@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radha Krishna Counter</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a3e 0%, #0f0f2e 50%, #1a1a3e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Animated background particles */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 215, 0, 0.6);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Floating bubbles container */
+        .bubbles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(100, 150, 255, 0.1));
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            animation: bubbleFloat 15s infinite ease-in-out;
+            box-shadow: 
+                inset 0 0 20px rgba(255, 255, 255, 0.2),
+                0 0 30px rgba(100, 150, 255, 0.3);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bubble img {
+            width: 90%;
+            height: 90%;
+            object-fit: cover;
+            border-radius: 50%;
+            opacity: 0.9;
+        }
+        
+        .bubble::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 20%;
+            width: 30%;
+            height: 30%;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            filter: blur(8px);
+            z-index: 1;
+        }
+        
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) translateX(20px) scale(1);
+            }
+            50% {
+                transform: translateY(50vh) translateX(-30px) scale(1.1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) translateX(50px) scale(0.8);
+                opacity: 0;
+            }
+        }
+        
+        /* Main container with side-by-side layout */
+        .main-container {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+        
+        /* Floating image container with bubble effect */
+        .floating-image-container {
+            position: relative;
+            width: 350px;
+            height: 500px;
+            animation: floatImage 4s ease-in-out infinite;
+        }
+        
+        @keyframes floatImage {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        .image-bubble {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50% 50% 45% 45%;
+            overflow: hidden;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(150, 200, 255, 0.2));
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 0 40px rgba(100, 150, 255, 0.5),
+                inset 0 0 60px rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .image-bubble::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 40%;
+            height: 40%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            filter: blur(20px);
+        }
+        
+        .floating-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50% 50% 45% 45%;
+            filter: brightness(1.1) contrast(1.1);
+        }
+        
+        /* Mini bubbles around main image */
+        .mini-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(150, 200, 255, 0.2));
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                inset 0 0 15px rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(100, 150, 255, 0.4);
+            animation: miniBubbleFloat 3s ease-in-out infinite;
+        }
+        
+        .mini-bubble:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+        
+        .mini-bubble:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            top: 50%;
+            right: -15%;
+            animation-delay: 1s;
+        }
+        
+        .mini-bubble:nth-child(4) {
+            width: 50px;
+            height: 50px;
+            bottom: 15%;
+            left: -5%;
+            animation-delay: 2s;
+        }
+        
+        .mini-bubble:nth-child(5) {
+            width: 70px;
+            height: 70px;
+            top: 70%;
+            right: -10%;
+            animation-delay: 1.5s;
+        }
+        
+        @keyframes miniBubbleFloat {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-15px) scale(1.1);
+                opacity: 1;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 50px 45px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 
+                0 25px 70px rgba(0, 0, 0, 0.4),
+                0 0 50px rgba(102, 126, 234, 0.3);
+            width: 450px;
+            position: relative;
+            animation: slideIn 0.8s ease-out;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        #number {
+            font-size: 110px;
+            font-weight: 800;
+            margin: 40px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2, #ff4081);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s ease;
+            position: relative;
+            text-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.5));
+        }
+        
+        #number.pulse {
+            animation: numberPulse 0.5s ease;
+        }
+        
+        @keyframes numberPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 35px;
+        }
+        
+        button {
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        button:hover::before {
+            width: 350px;
+            height: 350px;
+        }
+        
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .increase-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            flex: 1;
+        }
+        
+        .increase-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+        
+        .increase-btn:active {
+            transform: translateY(-2px);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #ff5252, #f48fb1);
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(255, 82, 82, 0.5);
+        }
+        
+        .reset-btn:active {
+            transform: translateY(-2px);
+        }
+        
+        #message {
+            margin-top: 40px;
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff4081, #ff6e40, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: scale(0.3) translateY(20px);
+            filter: blur(10px);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        .animate {
+            animation: messageAppear 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes messageAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(20px);
+                filter: blur(10px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.15) translateY(0);
+                filter: blur(0);
+            }
+            70% {
+                transform: scale(0.95) translateY(0);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+        
+        /* Confetti effect */
+        .confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ff4081;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .confetti.active {
+            animation: confettiFall 2s ease-out forwards;
+        }
+        
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(400px) rotate(1080deg);
+            }
+        }
+        
+        /* Counter badge */
+        .counter-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a3e;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .main-container {
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .floating-image-container {
+                width: 300px;
+                height: 450px;
+            }
+            
+            .card {
+                width: 400px;
+                padding: 40px 35px;
+            }
+            
+            #number {
+                font-size: 90px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                gap: 30px;
+                padding: 20px;
+            }
+            
+            .floating-image-container {
+                width: 280px;
+                height: 380px;
+            }
+            
+            .card {
+                width: 90%;
+                max-width: 400px;
+                padding: 40px 30px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            #number {
+                font-size: 80px;
+                margin: 30px 0;
+            }
+            
+            button {
+                padding: 14px 30px;
+                font-size: 16px;
+            }
+            
+            #message {
+                font-size: 28px;
+                margin-top: 30px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-container {
+                gap: 20px;
+                padding: 10px;
+            }
+            
+            .floating-image-container {
+                width: 240px;
+                height: 320px;
+            }
+            
+            .mini-bubble:nth-child(2) {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .mini-bubble:nth-child(3) {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .mini-bubble:nth-child(4) {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .mini-bubble:nth-child(5) {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .card {
+                width: 95%;
+                padding: 30px 20px;
+            }
+            
+            .counter-badge {
+                font-size: 12px;
+                padding: 8px 15px;
+                margin-bottom: 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            
+            #number {
+                font-size: 70px;
+                margin: 25px 0;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 25px;
+            }
+            
+            button {
+                padding: 14px 25px;
+                font-size: 15px;
+                width: 100%;
+            }
+            
+            #message {
+                font-size: 24px;
+                margin-top: 25px;
+                letter-spacing: 2px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .floating-image-container {
+                width: 200px;
+                height: 280px;
+            }
+            
+            .card {
+                padding: 25px 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .subtitle {
+                font-size: 13px;
+            }
+            
+            #number {
+                font-size: 60px;
+                margin: 20px 0;
+            }
+            
+            button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            #message {
+                font-size: 20px;
+            }
+            
+            .counter-badge {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+        
+        /* Landscape mobile orientation */
+        @media (max-width: 900px) and (max-height: 500px) {
+            .main-container {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .floating-image-container {
+                width: 200px;
+                height: 280px;
+            }
+            
+            .card {
+                padding: 20px 25px;
+            }
+            
+            #number {
+                font-size: 50px;
+                margin: 15px 0;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            #message {
+                font-size: 20px;
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background particles -->
+    <script>
+        // Create floating particles
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            document.body.appendChild(particle);
+        }
+    </script>
+
+    <!-- Floating bubbles in background -->
+    <div class="bubbles-container" id="bubblesContainer"></div>
+
+    <div class="main-container">
+        <!-- Floating image in bubble -->
+        <div class="floating-image-container">
+            <div class="mini-bubble"></div>
+            <div class="image-bubble">
+                <img src="/image/img1.jpg" alt="Radha Krishna">
+            </div>
+            <div class="mini-bubble"></div>
+            <div class="mini-bubble"></div>
+            <div class="mini-bubble"></div>
+        </div>
+
+        <!-- Counter card -->
+        <div class="card">
+            <div class="counter-badge">✨ JAI SHREE RADHE KRISHNA ✨</div>
+            <h1>Divine Counter</h1>
+            <p class="subtitle">Click to increase the count</p>
+            <div id="number">0</div>
+            <div class="button-group">
+                <button class="increase-btn" onclick="increaseNumber()">
+                    <span>➕ Increase</span>
+                </button>
+                <button class="reset-btn" onclick="resetNumber()">
+                    <span>🔄 Reset</span>
+                </button>
+            </div>
+            <div id="message">Radha ✨</div>
+        </div>
+    </div>
+
+    <script>
+        // Create multiple floating bubbles with images
+        function createBackgroundBubbles() {
+            const container = document.getElementById('bubblesContainer');
+            for (let i = 0; i < 12; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 120 + 80; // Bigger bubbles to see images better
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 10 + 's';
+                bubble.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                
+                // Add image to bubble
+                const img = document.createElement('img');
+                img.src = 'image/img2.jpg';
+                img.alt = 'Radha Krishna';
+                bubble.appendChild(img);
+                
+                container.appendChild(bubble);
+            }
+        }
+        
+        createBackgroundBubbles();
+
+        let count = 0;
+
+        function createFireworksConfetti() {
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+            
+            const randomInRange = (min, max) => {
+                return Math.random() * (max - min) + min;
+            };
+            
+            const interval = setInterval(() => {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // Left side firework
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                });
+                
+                // Right side firework
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                });
+            }, 250);
+        }
+
+        function createConfetti() {
+            const colors = ['#ff4081', '#667eea', '#764ba2', '#f48fb1', '#ff6e40', '#ffd700'];
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = (Math.random() * 100) + '%';
+                confetti.style.top = '50%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 10 + 6) + 'px';
+                confetti.style.height = (Math.random() * 10 + 6) + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.classList.add('active');
+                }, i * 40);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 2500);
+            }
+        }
+
+        function increaseNumber() {
+            count++;
+            const numberElement = document.getElementById("number");
+            numberElement.innerText = count;
+            
+            // Pulse animation for number
+            numberElement.classList.remove("pulse");
+            void numberElement.offsetWidth; // Trigger reflow
+            numberElement.classList.add("pulse");
+            
+            // Message animation
+            const msg = document.getElementById("message");
+            msg.classList.remove("animate");
+            void msg.offsetWidth; // Trigger reflow
+            msg.classList.add("animate");
+            
+            // Fireworks confetti on every 5 clicks
+            if (count % 108 === 0) {
+                createFireworksConfetti();
+            }
+        }
+
+        function resetNumber() {
+            count = 0;
+            const numberElement = document.getElementById("number");
+            numberElement.innerText = count;
+            
+            // Reset message
+            const msg = document.getElementById("message");
+            msg.classList.remove("animate");
+            msg.style.opacity = 0;
+            msg.style.transform = "scale(0.3) translateY(20px)";
+            msg.style.filter = "blur(10px)";
+        }
+    </script>
+</body>
+</html>
